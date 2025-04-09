@@ -1,5 +1,6 @@
 from langchain_core.messages import SystemMessage
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langgraph.graph import START, StateGraph, MessagesState
 from langgraph.prebuilt import tools_condition, ToolNode
@@ -34,7 +35,7 @@ def divide(a: int, b: int) -> float:
 tools = [add, multiply, divide]
 
 # Define LLM with bound tools
-llm = ChatOpenAI(model="gpt-4o")
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash",  convert_system_message_to_human=True)
 llm_with_tools = llm.bind_tools(tools)
 
 # System message
@@ -59,3 +60,15 @@ builder.add_edge("tools", "assistant")
 
 # Compile graph
 graph = builder.compile()
+
+from langchain_core.messages import HumanMessage
+
+# Start the conversation with a human message asking to do a task (e.g., use a tool)
+input_messages = {"messages": [HumanMessage(content="What is 8 multiplied by 7?")]}
+
+# Run the graph
+result = graph.invoke(input_messages)
+
+# Print result
+for m in result["messages"]:
+    print(m.content)
